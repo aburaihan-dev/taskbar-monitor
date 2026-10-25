@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!-- Selftest=true builds a console exe so the checks can print (see Program.cs) -->
+    <OutputType Condition="'$(Selftest)' == 'true'">Exe</OutputType>
+    <!-- plain net10.0-windows: a versioned TFM (…-windows10.0.x) drags in a 24 MB WinRT projection we do not use -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <AssemblyName>TaskbarMonitor</AssemblyName>
+    <RootNamespace>TaskbarMonitor</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- WinForms is referenced only to get System.Drawing from the shared runtime -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <PublishSingleFile>true</PublishSingleFile>
+    <!-- low idle footprint: no background GC thread, no tiered PGO instrumentation, no resource strings -->
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
+    <TieredPGO>false</TieredPGO>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <!-- WFO0003: DPI is set in app.manifest. CA1416: the app targets Windows 11, so Windows 10 1607+ APIs are fine -->
+    <NoWarn>WFO0003;CA1416</NoWarn>
+  </PropertyGroup>
+  <!-- keep the console selftest build out of the normal bin/obj so it can never leak a console exe into a publish -->
+  <PropertyGroup Condition="'$(Selftest)' == 'true'">
+    <OutputPath>bin\selftest\</OutputPath>
+    <IntermediateOutputPath>obj\selftest\</IntermediateOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="spike\**" />
+    <None Remove="spike\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="LibreHardwareMonitorLib" Version="0.9.6" />
+    <PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.367">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>
