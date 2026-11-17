@@ -12,6 +12,7 @@ internal sealed class Config
     public bool ShowCpu { get; set; } = true;
     public bool ShowMemory { get; set; } = true;
     public bool ShowTemp { get; set; } = true;      // hidden automatically when the machine has no thermal zone
+    public bool ShowBattery { get; set; } = true;   // charge state and power draw, hidden automatically on machines without a battery
     public bool AdminSensors { get; set; }          // GPU/disk temperatures, needs the app to run as administrator
     public int RefreshMs { get; set; } = 1000;      // how often everything is sampled and redrawn
     public bool Bits { get; set; }            // bit/s instead of byte/s

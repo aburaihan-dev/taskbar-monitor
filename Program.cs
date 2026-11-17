@@ -43,6 +43,8 @@ internal static class Program
         Eq((0L, 0L), Calc.NetDelta(prev, new Dictionary<string, (long Rx, long Tx)> { ["a"] = (10, 20) }), "delta counter reset is 0");
         Eq((0L, 0L), Calc.NetDelta(prev, new Dictionary<string, (long Rx, long Tx)>()), "delta adapter gone");
 
+        Eq("8.5 W", Calc.Watts(8.46), "watts 1 decimal");
+        Eq("123 W", Calc.Watts(123.4), "watts 0 decimals");
         Eq(75, Calc.CpuPercent(50, 100, 100), "cpu 75%");
         Eq(0, Calc.CpuPercent(0, 0, 0), "cpu no time elapsed");
         Eq(100, Calc.CpuPercent(0, 10, 10), "cpu fully busy");

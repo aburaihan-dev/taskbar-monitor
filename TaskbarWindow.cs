@@ -26,7 +26,7 @@ internal sealed unsafe class TaskbarWindow
     const uint TpmRightButton = 0x0002, TpmBottomAlign = 0x0020, TpmReturnCmd = 0x0100;   // TrackPopupMenuEx flags (CsWin32 leaves them as plain uint)
 
     // menu command ids
-    const int IdUp = 1, IdDown = 2, IdCpu = 3, IdMem = 4, IdBits = 5, IdTemp = 6, IdAdmin = 7, IdRate = 40;
+    const int IdUp = 1, IdDown = 2, IdCpu = 3, IdMem = 4, IdBits = 5, IdTemp = 6, IdAdmin = 7, IdBat = 8, IdRate = 40;
     static readonly int[] RatesMs = [500, 1000, 2000, 5000];
     const int IdFont = 10, IdLeft = 20, IdRight = 21, IdReset = 22, IdAuto = 30, IdExit = 99;
 
@@ -255,6 +255,14 @@ internal sealed unsafe class TaskbarWindow
         if (_stats.Admin is { Disk: > 0 } a2) temps.Add(new("DISK", $"{a2.Disk}°C", "100°C"));
         var groups = new List<List<Row>> { net, sys };
         for (int i = 0; i < temps.Count; i += 2) groups.Add(temps.GetRange(i, Math.Min(2, temps.Count - i)));
+        if (_cfg.ShowBattery && _stats.Bat is { Present: true } b)
+        {
+            // label is the indicator: CHG charging, DIS discharging, AC plugged in and idle (full)
+            var (label, value) = b.IsCharging ? ("CHG", $"+{Calc.Watts(b.Watts)}")
+                : b.IsDischarging ? ("DIS", $"-{Calc.Watts(b.Watts)}")
+                : b.OnAc ? ("AC", "Full") : ("BAT", "0 W");
+            groups.Add([new(label, value, "-88.8 W")]);
+        }
         return groups.Where(g => g.Count > 0).ToList();
     }
 
@@ -282,6 +290,7 @@ internal sealed unsafe class TaskbarWindow
         Add(menu, IdCpu, "CPU", _cfg.ShowCpu);
         Add(menu, IdMem, "Memory", _cfg.ShowMemory);
         Add(menu, IdTemp, "Temperature", _cfg.ShowTemp);
+        Add(menu, IdBat, "Battery power", _cfg.ShowBattery);
         PInvoke.AppendMenu(menu, MENU_ITEM_FLAGS.MF_SEPARATOR, 0, null);
         Add(menu, IdBits, "Show speed in bits", _cfg.Bits);
         for (int i = 0; i < FontSizes.Length; i++) Add(fontMenu, IdFont + i, $"{FontSizes[i]} px", (int)_cfg.FontPx == FontSizes[i]);
@@ -317,6 +326,7 @@ internal sealed unsafe class TaskbarWindow
             case IdCpu: _cfg.ShowCpu = Toggle(_cfg.ShowCpu); break;
             case IdMem: _cfg.ShowMemory = Toggle(_cfg.ShowMemory); break;
             case IdTemp: _cfg.ShowTemp = Toggle(_cfg.ShowTemp); break;
+            case IdBat: _cfg.ShowBattery = !_cfg.ShowBattery; break;
             case IdBits: _cfg.Bits = !_cfg.Bits; break;
             case >= IdFont and < IdFont + 6: _cfg.FontPx = FontSizes[cmd - IdFont]; break;
             case >= IdRate and < IdRate + 4: _cfg.RefreshMs = RatesMs[cmd - IdRate]; StartTimer(); break;
