@@ -40,6 +40,9 @@ internal static class Calc
         return (int)Math.Round(100.0 * (total - dIdle) / total);
     }
 
+    /// <summary>"8.5 W" style power text.</summary>
+    public static string Watts(double w) => (w >= 100 ? w.ToString("0", CI) : w.ToString("0.0", CI)) + " W";
+
     /// <summary>"12.3 MB/s" style text; bits uses decimal steps ("Mbps"), bytes binary steps.</summary>
     public static string Speed(double bytesPerSec, bool bits)
     {
@@ -96,6 +99,7 @@ internal sealed unsafe class Sampler
         finally { System.Runtime.InteropServices.Marshal.FreeHGlobal(buf); }
     }
 
+    public readonly Battery Bat = new();
     public AdminSensors? Admin;   // set only when running elevated with the option on
     int _adminTick;
 
@@ -105,6 +109,7 @@ internal sealed unsafe class Sampler
         SampleNet();
         SampleCpu();
         SampleTemp();
+        Bat.Update();
         MEMORYSTATUSEX m = default;
         m.dwLength = (uint)sizeof(MEMORYSTATUSEX);
         if (PInvoke.GlobalMemoryStatusEx(&m)) Mem = (int)m.dwMemoryLoad;
